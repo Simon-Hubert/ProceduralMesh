@@ -6,6 +6,7 @@ namespace ProceduralMeshes{
         int VertexCount {get;}
         int IndexCount {get;}
         int JobLength {get;}
-        
+        int Resolution {get; set;}
+        Bounds Bounds {get;}
     }
 }

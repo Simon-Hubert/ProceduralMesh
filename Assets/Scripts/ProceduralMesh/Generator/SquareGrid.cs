@@ -7,32 +7,46 @@ using Unity.VisualScripting;
 namespace ProceduralMeshes.Generators{
     public struct SquareGrid : IMeshGenerator
     {
-        public int VertexCount => 4;
+        public int Resolution {get; set;}
 
-        public int IndexCount => 6;
+        public int VertexCount => 4 * Resolution * Resolution;
 
-        public int JobLength => 1;
+        public int IndexCount => 6 * Resolution * Resolution;
 
-        public void Execute<S>(int i, S streams) where S : struct, IMeshStreams {
-            var vertex = new Vertex();
-            vertex.normal.z = -1f;
-            vertex.tangent.xw = float2(1f, -1f);
-            streams.SetVertex(0, vertex);
+        public int JobLength => Resolution;
 
-            vertex.position = right();
-            vertex.texCoord0 = float2(1f, 0f);
-            streams.SetVertex(1, vertex);
+        public void Execute<S>(int z, S streams) where S : struct, IMeshStreams {
+            int vi = 4*Resolution*z, ti = 2*Resolution*z;
 
-            vertex.position = up();
-            vertex.texCoord0 = float2(0f,1f);
-            streams.SetVertex(2, vertex);
+            for (int x=0; x<Resolution;x++, vi +=4, ti +=2){
+                var xcoordinates = float2(x, x+1f)/Resolution - .5f;
+                var zcoordinates = float2(z,z+1f)/Resolution - .5f;
 
-            vertex.position = float3(1f, 1f, 0f);
-            vertex.texCoord0 = 1f;
-            streams.SetVertex(3, vertex);
+                var vertex = new Vertex();
+                vertex.position.x = xcoordinates.x;
+                vertex.position.z = zcoordinates.x;
+                vertex.normal.y = 1f;
+                vertex.tangent.xw = float2(1f, -1f);
+                streams.SetVertex(vi, vertex);
 
-            streams.SetTriangle(0, int3(0,2,1));
-            streams.SetTriangle(1, int3(1,2,3));
+                vertex.position.x = xcoordinates.y;
+                vertex.texCoord0 = float2(1f, 0f);
+                streams.SetVertex(vi+1, vertex);
+
+                vertex.position.x = xcoordinates.x;
+                vertex.position.z = zcoordinates.y;
+                vertex.texCoord0 = float2(0f,1f);
+                streams.SetVertex(vi+2, vertex);
+
+                vertex.position.x = xcoordinates.y;
+                vertex.texCoord0 = 1f;
+                streams.SetVertex(vi+3, vertex);
+
+                streams.SetTriangle(ti, vi+int3(0,2,1));
+                streams.SetTriangle(ti+1, vi+int3(1,2,3));
+            }
         }
+
+        public Bounds Bounds => new Bounds(Vector3.zero, new Vector3(1f,0f,1f));
     }
 }
